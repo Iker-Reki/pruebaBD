@@ -26,7 +26,7 @@ app.get('/', (req, res) => {
   res.send('¡API funcionando desde Clever Cloud!');
 });
 
-app.get('/usuario', (req, res) => {
+app.get('/api/usuario', (req, res) => {
   db.query('SELECT * FROM usuario', (err, results) => {
     if (err) {
       res.status(500).json({ error: err });
