@@ -36,6 +36,43 @@ app.get('/api/usuario', (req, res) => {
   });
 });
 
+//COmprobar si el usuario esta en la base de datos
+app.post('/api/login', (req, res) => {
+  const { correo, contrasena } = req.body;
+
+  if (!correo || !contrasena) {
+    return res.status(400).json({ error: 'Correo y contraseña son requeridos' });
+  }
+
+  const query = 'SELECT * FROM usuario WHERE correoUsu = ? AND contraUsu = ?';
+  
+  db.query(query, [correo, contrasena], (err, results) => {
+    if (err) {
+      console.error('Error en la consulta:', err);
+      return res.status(500).json({ error: 'Error del servidor' });
+    }
+
+    if (results.length === 0) {
+      return res.status(401).json({ error: 'Credenciales incorrectas' });
+    }
+
+    const usuario = results[0];
+    
+    // Devuelve todos los datos del usuario (excepto la contraseña por seguridad)
+    res.json({
+      success: true,
+      usuario: {
+        id: usuario.idUsu,
+        nombre: usuario.nombreUsu,
+        apellido1: usuario.ape1Usu,
+        apellido2: usuario.ape2Usu,
+        correo: usuario.correoUsu
+        
+      }
+    });
+  });
+});
+
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Servidor en puerto ${port}`);
