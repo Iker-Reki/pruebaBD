@@ -78,7 +78,7 @@ app.get('/api/check-correo', (req, res) => {
     const { email } = req.query; // Recibe el email como query parameter
     
     db.query(
-        'SELECT COUNT(*) as count FROM usuario WHERE correo = ?', 
+        'SELECT COUNT(*) as count FROM usuario WHERE correoUsu = ?', 
         [email],
         (err, results) => {
             if (err) {
