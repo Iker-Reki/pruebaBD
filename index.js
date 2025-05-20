@@ -45,7 +45,7 @@ app.post('/api/login', (req, res) => {
   }
 
   const query = 'SELECT * FROM usuario WHERE correoUsu = ? AND contraUsu = ?';
-  
+
   db.query(query, [correo, contrasena], (err, results) => {
     if (err) {
       console.error('Error en la consulta:', err);
@@ -57,7 +57,7 @@ app.post('/api/login', (req, res) => {
     }
 
     const usuario = results[0];
-    
+
     // Devuelve todos los datos del usuario (excepto la contraseña por seguridad)
     res.json({
       success: true,
@@ -67,7 +67,7 @@ app.post('/api/login', (req, res) => {
         apellido1: usuario.ape1Usu,
         apellido2: usuario.ape2Usu,
         correo: usuario.correoUsu
-        
+
       }
     });
   });
@@ -75,19 +75,35 @@ app.post('/api/login', (req, res) => {
 
 //Comprueba si existe un correo ya en la bd y devuele un count con el numero de coincidencias
 app.get('/api/check-correo', (req, res) => {
-    const { email } = req.query; // Recibe el email como query parameter
-    
-    db.query(
-        'SELECT COUNT(*) as count FROM usuario WHERE correoUsu = ?', 
-        [email],
-        (err, results) => {
-            if (err) {
-                console.error('Error en la consulta:', err);
-                return res.status(500).json({ error: 'Error en la base de datos' });
-            }
-            res.json({ count: results[0].count });
-        }
-    );
+  const { email } = req.query; // Recibe el email como query parameter
+
+  db.query(
+    'SELECT COUNT(*) as count FROM usuario WHERE correoUsu = ?',
+    [email],
+    (err, results) => {
+      if (err) {
+        console.error('Error en la consulta:', err);
+        return res.status(500).json({ error: 'Error en la base de datos' });
+      }
+      res.json({ count: results[0].count });
+    }
+  );
+});
+
+//Inserta un usuario
+app.post('/api/registro', (req, res) => {
+  const { nombreUsu, ape1Usu, ape2Usu, correoUsu, contraUsu } = req.body;
+  db.query(
+    'INSERT INTO usuario (nombreUsu, ape1Usu, ape2Usu, correoUsu, contraUsu) VALUES (?, ?, ?, ?, ?)',
+    [nombreUsu, ape1Usu, ape2Usu, correoUsu, contraUsu],
+    (err, results) => {
+      if (err) {
+        return res.status(500).json({ success: false, message: 'Error al crear usuario' });
+      }
+      res.json({ success: true, message: 'Usuario registrado con éxito' });
+    }
+  );
+
 });
 
 const port = process.env.PORT || 3000;
