@@ -73,6 +73,23 @@ app.post('/api/login', (req, res) => {
   });
 });
 
+//Comprueba si existe un correo ya en la bd y devuele un count con el numero de coincidencias
+app.get('/api/check-correo', (req, res) => {
+    const { email } = req.query; // Recibe el email como query parameter
+    
+    db.query(
+        'SELECT COUNT(*) as count FROM usuario WHERE correo = ?', 
+        [email],
+        (err, results) => {
+            if (err) {
+                console.error('Error en la consulta:', err);
+                return res.status(500).json({ error: 'Error en la base de datos' });
+            }
+            res.json({ count: results[0].count });
+        }
+    );
+});
+
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Servidor en puerto ${port}`);
