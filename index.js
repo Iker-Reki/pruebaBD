@@ -106,6 +106,44 @@ app.post('/api/registro', (req, res) => {
 
 });
 
+//Cambio contraseña
+app.post('/api/cambio-contra', (req, res) => {
+    const { idUsu, contraUsu } = req.body;
+
+    if (!idUsu || !contraUsu) {
+        return res.status(400).json({ 
+            success: false,
+            message: 'Datos incompletos' 
+        });
+    }
+
+    db.query(
+        'UPDATE usuario SET contraUsu = ? WHERE idUsu = ?',
+        [contraUsu, idUsu],
+        (err, results) => {
+            if (err) {
+                console.error('Error al actualizar:', err);
+                return res.status(500).json({ 
+                    success: false,
+                    message: 'Error en la base de datos' 
+                });
+            }
+            
+            if (results.affectedRows === 0) {
+                return res.status(404).json({ 
+                    success: false,
+                    message: 'Usuario no encontrado' 
+                });
+            }
+
+            res.json({ 
+                success: true,
+                message: 'Contraseña actualizada con éxito' 
+            });
+        }
+    );
+});
+
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Servidor en puerto ${port}`);
