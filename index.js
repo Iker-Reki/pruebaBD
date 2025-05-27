@@ -144,16 +144,64 @@ app.post('/api/cambio-contra', (req, res) => {
     );
 });
 // NUEVO ENDPOINT: Obtener todas las confederaciones
-app.get('/api/confederaciones', (req, res) => {
-    db.query('SELECT idConfe, nombreConfe, ubicacionConfe FROM confederacion', (err, results) => { // Solo seleccionamos los campos necesarios para la lista
+// Obtener confederaciones favoritas de un usuario
+app.get('/api/usuarios/:idUsu/favoritas', (req, res) => {
+    const { idUsu } = req.params;
+    const query = `
+        SELECT c.idConfe, c.nombreConfe, c.ubicacionConfe 
+        -- , c.capacidadConfe, c.fecConstConfe, c.alturaConfe  -- Agrega más campos si los necesitas
+        FROM confederacion c
+        INNER JOIN confe_usu cf ON c.idConfe = cf.idConfe
+        WHERE cf.idUsu = ?
+    `;
+    db.query(query, [idUsu], (err, results) => {
         if (err) {
-            console.error('Error al obtener confederaciones:', err);
-            res.status(500).json({ error: 'Error del servidor al obtener confederaciones' });
+            console.error('Error al obtener favoritas:', err);
+            res.status(500).json({ error: 'Error del servidor al obtener favoritas' });
         } else {
             res.json(results);
         }
     });
 });
+
+// Añadir una confederación a favoritos
+app.post('/api/favoritas', (req, res) => {
+    const { idUsu, idConfe } = req.body;
+    if (!idUsu || !idConfe) {
+        return res.status(400).json({ success: false, message: 'idUsu e idConfe son requeridos' });
+    }
+    const query = 'INSERT INTO confe_usu (idUsu, idConfe) VALUES (?, ?)';
+    db.query(query, [idUsu, idConfe], (err, results) => {
+        if (err) {
+            if (err.code === 'ER_DUP_ENTRY') {
+                return res.status(409).json({ success: false, message: 'Confederación ya está en favoritos' });
+            }
+            console.error('Error al añadir favorita:', err);
+            return res.status(500).json({ success: false, message: 'Error al añadir favorita' });
+        }
+        res.json({ success: true, message: 'Confederación añadida a favoritos' });
+    });
+});
+
+// Eliminar una confederación de favoritos
+app.delete('/api/favoritas', (req, res) => {
+    const { idUsu, idConfe } = req.body; // O podrías usar req.query o req.params
+    if (!idUsu || !idConfe) {
+        return res.status(400).json({ success: false, message: 'idUsu e idConfe son requeridos' });
+    }
+    const query = 'DELETE FROM confe_usu WHERE idUsu = ? AND idConfe = ?';
+    db.query(query, [idUsu, idConfe], (err, results) => {
+        if (err) {
+            console.error('Error al eliminar favorita:', err);
+            return res.status(500).json({ success: false, message: 'Error al eliminar favorita' });
+        }
+        if (results.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Favorito no encontrado' });
+        }
+        res.json({ success: true, message: 'Confederación eliminada de favoritos' });
+    });
+});
+
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Servidor en puerto ${port}`);
