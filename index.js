@@ -143,11 +143,12 @@ app.post('/api/cambio-contra', (req, res) => {
         }
     );
 });
-// Confederaciones
+// NUEVO ENDPOINT: Obtener todas las confederaciones
 app.get('/api/confederaciones', (req, res) => {
-    db.query('SELECT * FROM confederacion', (err, results) => {
+    db.query('SELECT idConfe, nombreConfe, ubicacionConfe FROM confederacion', (err, results) => { // Solo seleccionamos los campos necesarios para la lista
         if (err) {
-            res.status(500).json({ error: err });
+            console.error('Error al obtener confederaciones:', err);
+            res.status(500).json({ error: 'Error del servidor al obtener confederaciones' });
         } else {
             res.json(results);
         }
