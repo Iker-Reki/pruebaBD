@@ -144,6 +144,80 @@ app.post('/api/cambio-contra', (req, res) => {
     );
 });
 
+// Logica Lista Vista
+
+// Get all confederaciones
+app.get('/api/confederaciones', (req, res) => {
+    db.query('SELECT * FROM confederacion', (err, results) => {
+        if (err) {
+            res.status(500).json({ error: err });
+        } else {
+            res.json(results);
+        }
+    });
+});
+
+// Get favoritos for user
+app.get('/api/favoritos', (req, res) => {
+    const { idUsuario } = req.query;
+
+    db.query(
+        `SELECT c.* FROM confederacion c 
+     JOIN confe_usu cu ON c.idConfe = cu.idConfe 
+     WHERE cu.idUsu = ?`,
+        [idUsuario],
+        (err, results) => {
+            if (err) {
+                res.status(500).json({ error: err });
+            } else {
+                res.json(results);
+            }
+        }
+    );
+});
+
+// Toggle favorito
+app.post('/api/toggle-favorito', (req, res) => {
+    const { idUsu, idConfe } = req.body;
+
+    // First check if it exists
+    db.query(
+        'SELECT * FROM confe_usu WHERE idUsu = ? AND idConfe = ?',
+        [idUsu, idConfe],
+        (err, results) => {
+            if (err) {
+                return res.status(500).json({ success: false, message: 'Database error' });
+            }
+
+            if (results.length > 0) {
+                // Remove favorite
+                db.query(
+                    'DELETE FROM confe_usu WHERE idUsu = ? AND idConfe = ?',
+                    [idUsu, idConfe],
+                    (err, results) => {
+                        if (err) {
+                            return res.status(500).json({ success: false, message: 'Database error' });
+                        }
+                        res.json({ success: true, message: 'Favorite removed' });
+                    }
+                );
+            } else {
+                // Add favorite
+                db.query(
+                    'INSERT INTO confe_usu (idUsu, idConfe) VALUES (?, ?)',
+                    [idUsu, idConfe],
+                    (err, results) => {
+                        if (err) {
+                            return res.status(500).json({ success: false, message: 'Database error' });
+                        }
+                        res.json({ success: true, message: 'Favorite added' });
+                    }
+                );
+            }
+        }
+    );
+});
+
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
   console.log(`Servidor en puerto ${port}`);
