@@ -164,7 +164,7 @@ app.get('/api/confederaciones/favoritas', (req, res) => {
     const query = `
         SELECT c.idConfe, c.nombreConfe, c.ubicacionConfe
         FROM confederacion c
-        JOIN confe_usu cu ON c.idConfe = cu.idConfe
+                 JOIN confe_usu cu ON c.idConfe = cu.idConfe
         WHERE cu.idUsu = ?;
     `;
     db.query(query, [idUsu], (err, results) => {
@@ -217,7 +217,49 @@ app.delete('/api/confederaciones/favoritas', (req, res) => {
     });
 });
 
+// NUEVO ENDPOINT: Obtener detalles de una confederación por ID
+app.get('/api/confederacion/:idConfe', (req, res) => {
+    const { idConfe } = req.params;
+    const query = 'SELECT idConfe, nombreConfe, ubicacionConfe, capacidadConfe, fecConstConfe, alturaConfe FROM confederacion WHERE idConfe = ?';
+    db.query(query, [idConfe], (err, results) => {
+        if (err) {
+            console.error('Error al obtener detalles de la confederación:', err);
+            return res.status(500).json({ error: 'Error del servidor al obtener detalles de la confederación' });
+        }
+        if (results.length === 0) {
+            return res.status(404).json({ error: 'Confederación no encontrada' });
+        }
+        res.json(results[0]);
+    });
+});
+
+// NUEVO ENDPOINT: Obtener datos de nivel de agua para una confederación por fecha
+app.get('/api/datos_confederacion/:confeId', (req, res) => {
+    const { confeId } = req.params;
+    const { date } = req.query; // Expects date in 'YYYY-MM-DD' format
+
+    if (!date) {
+        return res.status(400).json({ error: 'La fecha (date) es requerida como query parameter.' });
+    }
+
+    const query = `
+        SELECT d.nivelDato, d.fecDato, d.hora_dato
+        FROM dato d
+        JOIN dato_confe dc ON d.idDato = dc.datoId
+        WHERE dc.confeId = ? AND d.fecDato = ?
+        ORDER BY d.hora_dato ASC;
+    `;
+    db.query(query, [confeId, date], (err, results) => {
+        if (err) {
+            console.error('Error al obtener datos de nivel de agua:', err);
+            return res.status(500).json({ error: 'Error del servidor al obtener datos de nivel de agua' });
+        }
+        res.json(results);
+    });
+});
+
+
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-    console.log(`Servidor en puerto ${port}`);
+    console.log(`Servidor en puerto ${port}`);
 });
