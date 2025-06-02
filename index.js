@@ -145,7 +145,7 @@ app.post('/api/cambio-contra', (req, res) => {
 });
 // NUEVO ENDPOINT: Obtener todas las confederaciones
 app.get('/api/confederaciones', (req, res) => {
-    db.query('SELECT idConfe, nombreConfe, ubicacionConfe FROM confederacion', (err, results) => { // Solo seleccionamos los campos necesarios para la lista
+    db.query('SELECT idConfe, nombreConfe, ubicacionConfe FROM confederacion', (err, results) => {
         if (err) {
             console.error('Error al obtener confederaciones:', err);
             res.status(500).json({ error: 'Error del servidor al obtener confederaciones' });
@@ -154,6 +154,69 @@ app.get('/api/confederaciones', (req, res) => {
         }
     });
 });
+
+// NUEVO ENDPOINT: Obtener confederaciones favoritas de un usuario
+app.get('/api/confederaciones/favoritas', (req, res) => {
+    const { idUsu } = req.query; // Recibe el idUsu como query parameter
+    if (!idUsu) {
+        return res.status(400).json({ error: 'idUsu es requerido' });
+    }
+    const query = `
+        SELECT c.idConfe, c.nombreConfe, c.ubicacionConfe
+        FROM confederacion c
+        JOIN confe_usu cu ON c.idConfe = cu.idConfe
+        WHERE cu.idUsu = ?;
+    `;
+    db.query(query, [idUsu], (err, results) => {
+        if (err) {
+            console.error('Error al obtener confederaciones favoritas:', err);
+            res.status(500).json({ error: 'Error del servidor al obtener confederaciones favoritas' });
+        } else {
+            res.json(results);
+        }
+    });
+});
+
+// NUEVO ENDPOINT: Añadir una confederación a favoritos
+app.post('/api/confederaciones/favoritas', (req, res) => {
+    const { idUsu, idConfe } = req.body;
+    if (!idUsu || !idConfe) {
+        return res.status(400).json({ success: false, message: 'idUsu y idConfe son requeridos' });
+    }
+
+    const query = 'INSERT INTO confe_usu (idUsu, idConfe) VALUES (?, ?)';
+    db.query(query, [idUsu, idConfe], (err, results) => {
+        if (err) {
+            if (err.code === 'ER_DUP_ENTRY') { // Manejar duplicados si ya es favorito
+                return res.status(409).json({ success: false, message: 'La confederación ya es favorita para este usuario' });
+            }
+            console.error('Error al añadir a favoritos:', err);
+            return res.status(500).json({ success: false, message: 'Error del servidor al añadir a favoritos' });
+        }
+        res.json({ success: true, message: 'Confederación añadida a favoritos con éxito' });
+    });
+});
+
+// NUEVO ENDPOINT: Eliminar una confederación de favoritos
+app.delete('/api/confederaciones/favoritas', (req, res) => {
+    const { idUsu, idConfe } = req.query; // Recibe como query parameters para DELETE
+    if (!idUsu || !idConfe) {
+        return res.status(400).json({ success: false, message: 'idUsu y idConfe son requeridos' });
+    }
+
+    const query = 'DELETE FROM confe_usu WHERE idUsu = ? AND idConfe = ?';
+    db.query(query, [idUsu, idConfe], (err, results) => {
+        if (err) {
+            console.error('Error al eliminar de favoritos:', err);
+            return res.status(500).json({ success: false, message: 'Error del servidor al eliminar de favoritos' });
+        }
+        if (results.affectedRows === 0) {
+            return res.status(404).json({ success: false, message: 'Confederación no encontrada en favoritos para este usuario' });
+        }
+        res.json({ success: true, message: 'Confederación eliminada de favoritos con éxito' });
+    });
+});
+
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log(`Servidor en puerto ${port}`);
