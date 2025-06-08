@@ -409,7 +409,7 @@ app.get('/api/datos_confederacion/:confeId', (req, res) => {
 //Recibir datos desde ESP32
 app.post('/api/datos', (req, res) => {
     const { nivelDato } = req.body;
-    //const { confeId } = 4;
+    const { confeId } = 4;
 
     if (nivelDato === undefined) {
         return res.status(400).json({ success: false, message: 'Falta nivelDato en el cuerpo de la petición' });
