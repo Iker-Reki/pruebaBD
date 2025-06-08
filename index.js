@@ -409,7 +409,7 @@ app.get('/api/datos_confederacion/:confeId', (req, res) => {
 //Recibir datos desde ESP32
 app.post('/api/datos', (req, res) => {
     const { nivelDato } = req.body;
-    const { confeId } = 4;
+    
 
     if (nivelDato === undefined) {
         return res.status(400).json({ success: false, message: 'Falta nivelDato en el cuerpo de la petición' });
@@ -430,8 +430,8 @@ app.post('/api/datos', (req, res) => {
         const nivelId = results.insertId;
 
         //Asociar el id del nivel que acabamos de insertar a confederación
-        const relQuery = 'INSERT INTO dato_confe (datoId, confeId) VALUES (?, ?)';
-        db.query(relQuery, [nivelId, confeId], (err) => {
+        const relQuery = 'INSERT INTO dato_confe (datoId, confeId) VALUES (?, 4)';
+        db.query(relQuery, [nivelId], (err) => {
             if (err) {
                 console.error('❌ Error al vincular dato con confederación:', err);
             }
