@@ -426,7 +426,7 @@ app.post('/api/datos', (req, res) => {
             console.error('❌ Error al insertar dato:', err);
             return res.status(500).json({ success: false, message: 'Error en base de datos' });
         }
-/*
+
         const nivelId = results.insertId;
 
         //Asociar el id del nivel que acabamos de insertar a confederación
@@ -436,7 +436,7 @@ app.post('/api/datos', (req, res) => {
                 console.error('❌ Error al vincular dato con confederación:', err);
             }
         });
-        */
+        
 /*
         if (nivelDato > 0) {
 
