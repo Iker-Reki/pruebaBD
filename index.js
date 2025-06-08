@@ -1,11 +1,42 @@
+//############## CONSTANTES ###############
+
+//API
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const mysql = require('mysql2');
-
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+//WEBSOCKET
+const WebSocket = require('ws');
+const wss = new WebSocket.Server({ port: 8081 });
+
+const clientes = new Set();
+
+wss.on('connection', (ws) => {
+    console.log('📡 Cliente WebSocket conectado');
+    clients.add(ws);
+
+    ws.on('close', () => {
+        clients.delete(ws);
+        console.log('❌ Cliente WebSocket desconectado');
+    });
+});
+
+//NODEMAILER
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.MAIL_USER,
+        pass: process.env.MAIL_PASS
+    }
+});
+
+//BASE DE DATOS
+const mysql = require('mysql2');
 
 const db = mysql.createConnection({
     host: process.env.DB_HOST,
@@ -22,6 +53,7 @@ db.connect(err => {
     }
 });
 
+//####################### FUNCIONES #########################
 app.get('/', (req, res) => {
     res.send('¡API funcionando desde Clever Cloud!');
 });
@@ -374,34 +406,128 @@ app.get('/api/datos_confederacion/:confeId', (req, res) => {
     });
 });
 
-// NUEVO ENDPOINT: Recibir datos desde ESP32
+//Recibir datos desde ESP32
 app.post('/api/datos', (req, res) => {
-  const { nivelDato } = req.body;
+    const { nivelDato } = req.body;
+    const { confeId } = 4;
 
-  if (nivelDato === undefined) {
-    return res.status(400).json({ success: false, message: 'Falta nivelDato en el cuerpo de la petición' });
-  }
-
-  const fecha = new Date();
-  const fecDato = fecha.toISOString().split('T')[0]; // YYYY-MM-DD
-  const hora_dato = fecha.toTimeString().split(' ')[0]; // HH:MM:SS
-
-  const query = 'INSERT INTO dato (nivelDato, fecDato, hora_dato) VALUES (?, ?, ?)';
-  db.query(query, [nivelDato, fecDato, hora_dato], (err, results) => {
-    if (err) {
-      console.error('❌ Error al insertar dato:', err);
-      return res.status(500).json({ success: false, message: 'Error en base de datos' });
+    if (nivelDato === undefined) {
+        return res.status(400).json({ success: false, message: 'Falta nivelDato en el cuerpo de la petición' });
     }
 
-    res.json({
-      success: true,
-      message: 'Dato guardado correctamente',
-      insertId: results.insertId
+    const fecha = new Date();
+    const fecDato = fecha.toISOString().split('T')[0]; // YYYY-MM-DD
+    const hora_dato = fecha.toTimeString().split(' ')[0]; // HH:MM:SS
+
+    //Insertamos el nivel en la base de datos
+    const query = 'INSERT INTO dato (nivelDato, fecDato, hora_dato) VALUES (?, ?, ?)';
+    db.query(query, [nivelDato, fecDato, hora_dato], (err, results) => {
+        if (err) {
+            console.error('❌ Error al insertar dato:', err);
+            return res.status(500).json({ success: false, message: 'Error en base de datos' });
+        }
+
+        const nivelId = results.insertId;
+
+        //Asociar el id del nivel que acabamos de insertar a confederación
+        const relQuery = 'INSERT INTO dato_confe (datoId, confeId) VALUES (?, ?)';
+        db.query(relQuery, [nivelId, confeId], (err) => {
+            if (err) {
+                console.error('❌ Error al vincular dato con confederación:', err);
+            }
+        });
+
+        if (nivelDato > 0) {
+
+            const correoQuery = `
+                SELECT u.correoUsu
+                FROM usuario u
+                JOIN confe_usu cu ON u.idUsu = cu.idUsu
+                WHERE cu.idConfe = ?`;
+            db.query(correoQuery, [confeId], (err, usuarios) => {
+                if (err) {
+                    console.error('❌ Error al obtener correos:', err);
+                    return;
+                }
+
+                usuarios.forEach(({ correoUsu }) => {
+                    const mailOptions = {
+                        from: process.env.MAIL_USER,
+                        to: correoUsu,
+                        suubject: `Alerta de nivel de agua en ${usuario.nombreConfe}`,
+                        text: `Hola ${usuario.nombreUsu},\n\nEl nivel de agua en ${usuario.nombreConfe} ha alcanzado ${nivelActual}, superando el nivel de seguridad.\n\nPor favor, tome las medidas necesarias.\n\nSaludos,\nEquipo de Monitoreo`,
+                        html: `<p>Hola ${usuario.nombreUsu},</p>
+                 <p>El nivel de agua en <strong>${usuario.nombreConfe}</strong> ha alcanzado <strong>${nivelActual}</strong>, superando el nivel de seguridad.</p>
+                 <p>Por favor, tome las medidas necesarias.</p>
+                 <p>Saludos,<br>Equipo de Monitoreo</p>`
+                    };
+
+                    transporter.sendMail(mailOptions, (err, info) => {
+                        if (err) {
+                            console.error(`❌ Error al enviar correo a ${correoUsu}:`, err);
+                        } else {
+                            console.log(`✉️ Correo enviado a ${correoUsu}: ${info.response}`);
+                        }
+                    });
+                });
+            });
+
+        }
+        //Verificar si el nivel enviado por arduino supera el nivel de alerta
+        const UMBRAL = parseInt(process.env.UMBRAL_NIVEL) || 200;
+
+        if (nivelDato > UMBRAL) {
+            const correoQuery = `
+                SELECT u.correoUsu
+                FROM usuario u
+                JOIN confe_usu cu ON u.idUsu = cu.idUsu
+                WHERE cu.idConfe = ?`;
+            db.query(correoQuery, [confeId], (err, usuarios) => {
+                if (err) {
+                    console.error('❌ Error al obtener correos:', err);
+                    return;
+                }
+
+                usuarios.forEach(({ correoUsu }) => {
+                    const mailOptions = {
+                        from: process.env.MAIL_USER,
+                        to: correoUsu,
+                        suubject: `Alerta de nivel de agua en ${usuario.nombreConfe}`,
+                        text: `Hola ${usuario.nombreUsu},\n\nEl nivel de agua en ${usuario.nombreConfe} ha alcanzado ${nivelActual}, superando el nivel de seguridad.\n\nPor favor, tome las medidas necesarias.\n\nSaludos,\nEquipo de Monitoreo`,
+                        html: `<p>Hola ${usuario.nombreUsu},</p>
+                 <p>El nivel de agua en <strong>${usuario.nombreConfe}</strong> ha alcanzado <strong>${nivelActual}</strong>, superando el nivel de seguridad.</p>
+                 <p>Por favor, tome las medidas necesarias.</p>
+                 <p>Saludos,<br>Equipo de Monitoreo</p>`
+                    };
+
+                    transporter.sendMail(mailOptions, (err, info) => {
+                        if (err) {
+                            console.error(`❌ Error al enviar correo a ${correoUsu}:`, err);
+                        } else {
+                            console.log(`✉️ Correo enviado a ${correoUsu}: ${info.response}`);
+                        }
+                    });
+                });
+            });
+        }
+
+        res.json({
+            success: true,
+            message: 'Dato guardado correctamente',
+            insertId: results.insertId
+        });
     });
-  });
 });
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log(`Servidor en puerto ${port}`);
 });
+
+function enviarNotificacionSocket(mensaje) {
+    for (const client of clients) {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(mensaje));
+        }
+    }
+}
