@@ -7,7 +7,7 @@ const cors = require('cors');
 const app = express();
 app.use(cors());
 app.use(express.json());
-
+/*
 //WEBSOCKET
 const WebSocket = require('ws');
 const wss = new WebSocket.Server({ port: 8081 });
@@ -34,7 +34,7 @@ const transporter = nodemailer.createTransport({
         pass: process.env.MAIL_PASS
     }
 });
-
+*/
 //BASE DE DATOS
 const mysql = require('mysql2');
 
@@ -409,7 +409,7 @@ app.get('/api/datos_confederacion/:confeId', (req, res) => {
 //Recibir datos desde ESP32
 app.post('/api/datos', (req, res) => {
     const { nivelDato } = req.body;
-    const { confeId } = 4;
+    //const { confeId } = 4;
 
     if (nivelDato === undefined) {
         return res.status(400).json({ success: false, message: 'Falta nivelDato en el cuerpo de la petición' });
@@ -426,7 +426,7 @@ app.post('/api/datos', (req, res) => {
             console.error('❌ Error al insertar dato:', err);
             return res.status(500).json({ success: false, message: 'Error en base de datos' });
         }
-
+/*
         const nivelId = results.insertId;
 
         //Asociar el id del nivel que acabamos de insertar a confederación
@@ -436,7 +436,8 @@ app.post('/api/datos', (req, res) => {
                 console.error('❌ Error al vincular dato con confederación:', err);
             }
         });
-
+        */
+/*
         if (nivelDato > 0) {
 
             const correoQuery = `
@@ -473,6 +474,7 @@ app.post('/api/datos', (req, res) => {
             });
 
         }
+            
         //Verificar si el nivel enviado por arduino supera el nivel de alerta
         const UMBRAL = parseInt(process.env.UMBRAL_NIVEL) || 200;
 
@@ -510,7 +512,7 @@ app.post('/api/datos', (req, res) => {
                 });
             });
         }
-
+*/
         res.json({
             success: true,
             message: 'Dato guardado correctamente',
@@ -523,7 +525,7 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log(`Servidor en puerto ${port}`);
 });
-
+/*
 function enviarNotificacionSocket(mensaje) {
     for (const client of clients) {
         if (client.readyState === WebSocket.OPEN) {
@@ -531,3 +533,4 @@ function enviarNotificacionSocket(mensaje) {
         }
     }
 }
+    */
