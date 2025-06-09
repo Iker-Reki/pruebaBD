@@ -23,7 +23,7 @@ wss.on('connection', (ws) => {
         console.log('❌ Cliente WebSocket desconectado');
     });
 });
-
+*/
 //NODEMAILER
 const nodemailer = require('nodemailer');
 
@@ -34,7 +34,7 @@ const transporter = nodemailer.createTransport({
         pass: process.env.MAIL_PASS
     }
 });
-*/
+
 //BASE DE DATOS
 const mysql = require('mysql2');
 
@@ -436,44 +436,6 @@ app.post('/api/datos', (req, res) => {
                 console.error('❌ Error al vincular dato con confederación:', err);
             }
         });
-        
-/*
-        if (nivelDato > 0) {
-
-            const correoQuery = `
-                SELECT u.correoUsu
-                FROM usuario u
-                JOIN confe_usu cu ON u.idUsu = cu.idUsu
-                WHERE cu.idConfe = ?`;
-            db.query(correoQuery, [confeId], (err, usuarios) => {
-                if (err) {
-                    console.error('❌ Error al obtener correos:', err);
-                    return;
-                }
-
-                usuarios.forEach(({ correoUsu }) => {
-                    const mailOptions = {
-                        from: process.env.MAIL_USER,
-                        to: correoUsu,
-                        suubject: `Alerta de nivel de agua en ${usuario.nombreConfe}`,
-                        text: `Hola ${usuario.nombreUsu},\n\nEl nivel de agua en ${usuario.nombreConfe} ha alcanzado ${nivelActual}, superando el nivel de seguridad.\n\nPor favor, tome las medidas necesarias.\n\nSaludos,\nEquipo de Monitoreo`,
-                        html: `<p>Hola ${usuario.nombreUsu},</p>
-                 <p>El nivel de agua en <strong>${usuario.nombreConfe}</strong> ha alcanzado <strong>${nivelActual}</strong>, superando el nivel de seguridad.</p>
-                 <p>Por favor, tome las medidas necesarias.</p>
-                 <p>Saludos,<br>Equipo de Monitoreo</p>`
-                    };
-
-                    transporter.sendMail(mailOptions, (err, info) => {
-                        if (err) {
-                            console.error(`❌ Error al enviar correo a ${correoUsu}:`, err);
-                        } else {
-                            console.log(`✉️ Correo enviado a ${correoUsu}: ${info.response}`);
-                        }
-                    });
-                });
-            });
-
-        }
             
         //Verificar si el nivel enviado por arduino supera el nivel de alerta
         const UMBRAL = parseInt(process.env.UMBRAL_NIVEL) || 200;
@@ -512,7 +474,7 @@ app.post('/api/datos', (req, res) => {
                 });
             });
         }
-*/
+
         res.json({
             success: true,
             message: 'Dato guardado correctamente',
