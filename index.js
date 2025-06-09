@@ -7,23 +7,7 @@ const cors = require('cors');
 const app = express();
 app.use(cors());
 app.use(express.json());
-/*
-//WEBSOCKET
-const WebSocket = require('ws');
-const wss = new WebSocket.Server({ port: 8081 });
 
-const clientes = new Set();
-
-wss.on('connection', (ws) => {
-    console.log('📡 Cliente WebSocket conectado');
-    clients.add(ws);
-
-    ws.on('close', () => {
-        clients.delete(ws);
-        console.log('❌ Cliente WebSocket desconectado');
-    });
-});
-*/
 //NODEMAILER
 const nodemailer = require('nodemailer');
 
@@ -175,7 +159,7 @@ app.post('/api/cambio-contra', (req, res) => {
         }
     );
 });
-// NUEVO ENDPOINT: Obtener todas las confederaciones
+// Obtener todas las confederaciones
 app.get('/api/confederaciones', (req, res) => {
     db.query('SELECT idConfe, nombreConfe, ubicacionConfe FROM confederacion', (err, results) => {
         if (err) {
@@ -187,7 +171,7 @@ app.get('/api/confederaciones', (req, res) => {
     });
 });
 
-// NUEVO ENDPOINT: Obtener confederaciones favoritas de un usuario
+// Obtener confederaciones favoritas de un usuario
 app.get('/api/confederaciones/favoritas', (req, res) => {
     const { idUsu } = req.query; // Recibe el idUsu como query parameter
     if (!idUsu) {
@@ -209,7 +193,7 @@ app.get('/api/confederaciones/favoritas', (req, res) => {
     });
 });
 
-// NUEVO ENDPOINT: Añadir una confederación a favoritos
+// Añadir una confederación a favoritos
 app.post('/api/confederaciones/favoritas', (req, res) => {
     const { idUsu, idConfe } = req.body;
     if (!idUsu || !idConfe) {
@@ -229,7 +213,7 @@ app.post('/api/confederaciones/favoritas', (req, res) => {
     });
 });
 
-// NUEVO ENDPOINT: Eliminar una confederación de favoritos
+//Eliminar una confederación de favoritos
 app.delete('/api/confederaciones/favoritas', (req, res) => {
     const { idUsu, idConfe } = req.query; // Recibe como query parameters para DELETE
     if (!idUsu || !idConfe) {
@@ -249,7 +233,7 @@ app.delete('/api/confederaciones/favoritas', (req, res) => {
     });
 });
 
-// NUEVO ENDPOINT: Obtener detalles de una confederación por ID
+// Obtener detalles de una confederación por ID
 app.get('/api/confederacion/:idConfe', (req, res) => {
     const { idConfe } = req.params;
     const query = 'SELECT idConfe, nombreConfe, ubicacionConfe, capacidadConfe, fecConstConfe, alturaConfe FROM confederacion WHERE idConfe = ?';
@@ -265,7 +249,7 @@ app.get('/api/confederacion/:idConfe', (req, res) => {
     });
 });
 
-// NUEVO ENDPOINT: Obtener datos de nivel de agua para una confederación por fecha
+// Obtener datos de nivel de agua para una confederación por fecha
 app.get('/api/datos_confederacion/:confeId', (req, res) => {
     const { confeId } = req.params;
     const { date } = req.query; // Expects date in 'YYYY-MM-DD' format
@@ -291,7 +275,7 @@ app.get('/api/datos_confederacion/:confeId', (req, res) => {
 });
 
 
-// NUEVO ENDPOINT: Obtener todas las confederaciones
+// Obtener todas las confederaciones
 app.get('/api/confederaciones', (req, res) => {
     db.query('SELECT idConfe, nombreConfe, ubicacionConfe FROM confederacion', (err, results) => {
         if (err) {
@@ -303,7 +287,7 @@ app.get('/api/confederaciones', (req, res) => {
     });
 });
 
-// NUEVO ENDPOINT: Obtener confederaciones favoritas de un usuario
+//  Obtener confederaciones favoritas de un usuario
 app.get('/api/confederaciones/favoritas', (req, res) => {
     const { idUsu } = req.query; // Recibe el idUsu como query parameter
     if (!idUsu) {
@@ -325,7 +309,7 @@ app.get('/api/confederaciones/favoritas', (req, res) => {
     });
 });
 
-// NUEVO ENDPOINT: Añadir una confederación a favoritos
+//Añadir una confederación a favoritos
 app.post('/api/confederaciones/favoritas', (req, res) => {
     const { idUsu, idConfe } = req.body;
     if (!idUsu || !idConfe) {
@@ -345,7 +329,7 @@ app.post('/api/confederaciones/favoritas', (req, res) => {
     });
 });
 
-// NUEVO ENDPOINT: Eliminar una confederación de favoritos
+// Eliminar una confederación de favoritos
 app.delete('/api/confederaciones/favoritas', (req, res) => {
     const { idUsu, idConfe } = req.query; // Recibe como query parameters para DELETE
     if (!idUsu || !idConfe) {
@@ -365,7 +349,7 @@ app.delete('/api/confederaciones/favoritas', (req, res) => {
     });
 });
 
-// NUEVO ENDPOINT: Obtener detalles de una confederación por ID
+//  Obtener detalles de una confederación por ID
 app.get('/api/confederacion/:idConfe', (req, res) => {
     const { idConfe } = req.params;
     const query = 'SELECT idConfe, nombreConfe, ubicacionConfe, capacidadConfe, fecConstConfe, alturaConfe FROM confederacion WHERE idConfe = ?';
@@ -381,7 +365,7 @@ app.get('/api/confederacion/:idConfe', (req, res) => {
     });
 });
 
-// NUEVO ENDPOINT: Obtener datos de nivel de agua para una confederación por fecha
+//  Obtener datos de nivel de agua para una confederación por fecha
 app.get('/api/datos_confederacion/:confeId', (req, res) => {
     const { confeId } = req.params;
     const { date } = req.query; // Expects date in 'YYYY-MM-DD' format
@@ -490,12 +474,3 @@ const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log(`Servidor en puerto ${port}`);
 });
-/*
-function enviarNotificacionSocket(mensaje) {
-    for (const client of clients) {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify(mensaje));
-        }
-    }
-}
-    */
