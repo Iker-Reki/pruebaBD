@@ -444,9 +444,12 @@ app.post('/api/datos', (req, res) => {
             const correoQuery = `
                 SELECT u.correoUsu
                 FROM usuario u
-                JOIN confe_usu cu ON u.idUsu = cu.idUsu
-                WHERE cu.idConfe = ?`;
-            db.query(correoQuery, [confeId], (err, usuarios) => {
+                INNER JOIN confe_usu cu ON u.idUsu = cu.idUsu
+                WHERE cu.idConfe = 4`;
+
+                console.log(correoQuery,confeId)
+
+            db.query(correoQuery, [], (err, usuarios) => {
                 if (err) {
                     console.error('❌ Error al obtener correos:', err);
                     return;
@@ -456,12 +459,9 @@ app.post('/api/datos', (req, res) => {
                     const mailOptions = {
                         from: process.env.MAIL_USER,
                         to: correoUsu,
-                        suubject: `Alerta de nivel de agua en ${usuario.nombreConfe}`,
-                        text: `Hola ${usuario.nombreUsu},\n\nEl nivel de agua en ${usuario.nombreConfe} ha alcanzado ${nivelActual}, superando el nivel de seguridad.\n\nPor favor, tome las medidas necesarias.\n\nSaludos,\nEquipo de Monitoreo`,
-                        html: `<p>Hola ${usuario.nombreUsu},</p>
-                 <p>El nivel de agua en <strong>${usuario.nombreConfe}</strong> ha alcanzado <strong>${nivelActual}</strong>, superando el nivel de seguridad.</p>
-                 <p>Por favor, tome las medidas necesarias.</p>
-                 <p>Saludos,<br>Equipo de Monitoreo</p>`
+                        suubject: `Alerta de nivel de agua en`,
+                        text: `Hola`,
+                        html: `Hola`
                     };
 
                     transporter.sendMail(mailOptions, (err, info) => {
