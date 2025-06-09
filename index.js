@@ -456,11 +456,15 @@ app.post('/api/datos', (req, res) => {
 
                 usuarios.forEach(({ correoUsu }) => {
                     const mailOptions = {
-                        from: process.env.MAIL_USER,
+                        from: process.env.MAIL_USER,   
                         to: correoUsu,
-                        suubject: `Alerta de nivel de agua en`,
-                        text: `Hola`,
-                        html: `Hola`
+                        subject: '¡Alerta! El nivel del agua ha subido',
+                        text: 'Hola,\n\nSe ha detectado un aumento en el nivel del agua. Por favor, revisa la situación lo antes posible.',
+                        html: `
+                        <p>Hola,</p>
+                        <p><strong>¡Atención!</strong> Se ha detectado un aumento en el nivel del agua.</p>
+                        <p>Por favor, revisa la situación lo antes posible.</p>`
+
                     };
 
                     transporter.sendMail(mailOptions, (err, info) => {
