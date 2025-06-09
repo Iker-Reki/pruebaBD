@@ -447,7 +447,6 @@ app.post('/api/datos', (req, res) => {
                 INNER JOIN confe_usu cu ON u.idUsu = cu.idUsu
                 WHERE cu.idConfe = 4`;
 
-                console.log(correoQuery,confeId)
 
             db.query(correoQuery, [], (err, usuarios) => {
                 if (err) {
