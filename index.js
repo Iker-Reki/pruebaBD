@@ -462,7 +462,7 @@ app.post('/api/datos', (req, res) => {
                         text: 'Hola,\n\nSe ha detectado un aumento en el nivel del agua. Por favor, revisa la situación lo antes posible.',
                         html: `
                         <p>Hola,</p>
-                        <p><strong>¡Atención!</strong> Se ha detectado un aumento en el nivel del agua.</p>
+                        <p><strong><span color="red">¡Atención!</span></strong> Se ha detectado un aumento en el nivel del agua.</p>
                         <p>Por favor, revisa la situación lo antes posible.</p>`
 
                     };
